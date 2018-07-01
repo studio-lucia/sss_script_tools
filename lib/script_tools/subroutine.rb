@@ -22,7 +22,12 @@ module ScriptTools
       # the stream.
       def consume stream
         loop do
+          # TODO: figure out how this ended up nil; we should have
+          #       terminated before hitting the end of the file.
+          #       This happens in TEXT007.DAT from the English iOS script.
           bytes = stream.read(2)
+          break if bytes.nil?
+
           # Is this text or a control code?
           if ControlCode.control_code_map.has_key? bytes[0].ord
             code = ControlCode.control_code_map[bytes[0].ord].new bytes[1].ord
