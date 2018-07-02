@@ -1,39 +1,30 @@
-# SssScriptTools
+# sss_script_tools
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/sss_script_tools`. To experiment with that code, run `bin/console` for an interactive prompt.
+This repo contains some Ruby libraries and commandline tools for working with the script files from Lunar: Silver Star Story for Saturn.
 
-TODO: Delete this and the text above, and describe your gem
+It's still a work in progress, but it recognizes the most common subroutines and control codes and is able to parse the Japanese script files.
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Within this repo, run:
 
-```ruby
-gem 'sss_script_tools'
+```
+rake build
+gem install pkg/*.gem
 ```
 
-And then execute:
+Or run it from within the repo by running the files in `exe` like this:
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install sss_script_tools
-
-## Usage
-
-TODO: Write usage instructions here
+```
+ruby -I . exe/script_printer path_to_script
+```
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/sss_script_tools. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
-
-## Code of Conduct
-
-Everyone interacting in the SssScriptTools project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/sss_script_tools/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/studio-lucia/sss_script_tools. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
