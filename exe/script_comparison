@@ -1,0 +1,94 @@
+#!/usr/bin/env ruby
+# Simple sample tool that prints the text from a Lunar script file.
+
+require "script_tools/header_parser"
+require "script_tools/subroutine"
+
+if ARGV[0].nil? || ARGV[1].nil?
+  $stderr.puts "Two script files must be provided!"
+  exit 1
+end
+
+ARGV[0..1].each do |path|
+  if !File.exist? path
+    $stderr.puts "No such file: #{path}"
+    exit 1
+  end
+end
+
+begin
+  first = File.open(ARGV[0])
+rescue Errno::EACCES
+  $stderr.puts "Cannot read file: #{ARGV[0]}"
+  exit 1
+end
+
+begin
+  second = File.open(ARGV[1])
+rescue Errno::EACCES
+  $stderr.puts "Cannot read file: #{ARGV[1]}"
+  exit 1
+end
+
+# Walks through the file, collecting strings for each pointer.
+# These still contain their control codes, but other subroutines within
+# the same pointer are skilled.
+def collect_strings(parser, stream)
+  strings = []
+  pointers = parser.parse
+
+  pointers.each do |pointer|
+    next if pointer.null?
+
+    strings_from_pointer = []
+    commands = []
+
+    stream.seek pointer.offset
+
+    loop do
+      bytes = stream.read(2)
+      break if bytes.nil? # EOF - probably shouldn't reach here?
+
+      subroutine_code = (bytes[0].ord << 8) + bytes[1].ord
+      if ScriptTools::Subroutine.subroutine_map.has_key? subroutine_code
+        subroutine = ScriptTools::Subroutine.subroutine_map[subroutine_code].new
+        subroutine.consume(stream)
+      else
+        # add it to the array but don't consume any bytes
+        subroutine = ScriptTools::Subroutine::Unknown.new(magic_number: subroutine_code)
+      end
+
+      commands << subroutine
+      break if subroutine.is_a? ScriptTools::Subroutine::EndOfScript
+    end
+
+    commands.each do |command|
+      next unless command.is_a? ScriptTools::Subroutine::Text
+
+      command.data.each do |chunk|
+        next unless chunk.is_a? ScriptTools::Subroutine::Chunk
+        strings_from_pointer << chunk
+      end
+    end
+
+    strings << strings_from_pointer
+  end
+
+  puts "Pointers: #{pointers.length}"
+  return strings
+end
+
+first_parser = ScriptTools::HeaderParser.new stream: first
+second_parser = ScriptTools::HeaderParser.new stream: second
+
+first_strings = collect_strings(first_parser, first)
+second_strings = collect_strings(second_parser, second)
+
+if first_strings.length != second_strings.length
+  $stderr.puts "String counts don't match; first: #{first_strings.length}, second: #{second_strings.length}"
+  exit 1
+end
+
+first_strings.each_with_index do |original_string, index|
+  # Do some form of comparison here...
+end
