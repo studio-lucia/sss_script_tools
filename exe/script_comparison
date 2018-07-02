@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
-# Simple sample tool that prints the text from a Lunar script file.
+# Compares the scripts from the original Saturn version and from the iOS version.
+# This can be used to create a mapping of the original font's characters.
 
 require "script_tools/header_parser"
 require "script_tools/subroutine"
