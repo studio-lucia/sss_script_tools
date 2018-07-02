@@ -3,6 +3,9 @@ require "script_tools/subroutine/tools"
 
 module ScriptTools
   class Subroutine
+    # Represents a block of text. The data for this type is a mixture of
+    # various control codes and of Chunk objects, which contain blocks of
+    # actual text.
     define_subroutine :Text, 0x0002 do
       followed_by :sequence, length: :variable
 

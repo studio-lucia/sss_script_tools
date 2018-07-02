@@ -51,12 +51,22 @@ module ScriptTools
 
     class << self
       attr_reader :subroutines
+      # Contains a mapping between 16-bit control code integers
+      # and the class that represents them.
       attr_reader :subroutine_map
     end
 
     @subroutines = []
     @subroutine_map = {}
 
+    # Defines a new class representing a subroutine.
+    # magic_number is the 16-bit integer that identifies the beginning
+    # of a control code, such as 0x0002.
+    # A block can be passed to define additional methods or to
+    # subclass methods.
+    # This is especially important for subroutines that take a
+    # sequence value, since those types have to define their own #consume.
+    # Text is a good example of a subroutine that does this.
     def self.define_subroutine(name, magic_number, &block)
       klass = Class.new(BaseSubroutine, &block)
       const_set(name, klass)
