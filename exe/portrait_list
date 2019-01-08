@@ -1,0 +1,53 @@
+#!/usr/bin/env ruby
+# Simple sample tool that prints the text from a Lunar script file.
+
+require "set"
+
+require "script_tools/header_parser"
+require "script_tools/subroutine"
+
+portraits = Set.new
+
+ARGV.each do |path|
+  stream = File.open(path)
+  parser = ScriptTools::HeaderParser.new stream: stream
+  pointers = parser.parse
+
+  pointers.each do |pointer|
+    # A number of pointers are null; left over from removed subroutines?
+    next if pointer.null?
+
+    commands = []
+
+    # Seek to the start of the subroutine
+    stream.seek pointer.offset
+
+    loop do
+      bytes = stream.read(2)
+      break if bytes.nil? # EOF - probably shouldn't reach here?
+
+      subroutine_code = (bytes[0].ord << 8) + bytes[1].ord
+      if ScriptTools::Subroutine.subroutine_map.has_key? subroutine_code
+        subroutine = ScriptTools::Subroutine.subroutine_map[subroutine_code].new
+        subroutine.consume(stream)
+      else
+        # add it to the array but don't consume any bytes
+        subroutine = ScriptTools::Subroutine::Unknown.new(magic_number: subroutine_code)
+      end
+
+      commands << subroutine
+      break if subroutine.is_a? ScriptTools::Subroutine::EndOfScript
+    end
+
+    commands.each do |command|
+      next unless command.is_a? ScriptTools::Subroutine::Text
+
+      command.data.each do |chunk|
+        next unless chunk.is_a? ScriptTools::ControlCode::Portrait
+        portraits << chunk.value
+      end
+    end
+  end
+end
+
+puts portraits.sort.map {|p| p.to_s(16).rjust(2, "0").upcase}
