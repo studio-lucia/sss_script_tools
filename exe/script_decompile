@@ -57,7 +57,9 @@ commands.each do |command|
     command.data.each do |chunk|
       case chunk
       when ScriptTools::Subroutine::Chunk
-        puts "  (print-text \"#{chunk.data.join}\")"
+        chunk.data.join.split("\n").each do |line|
+          puts "  (print-line \"#{line}\")"
+        end
       when ScriptTools::Subroutine::Jump
         puts "  (jump 0x#{chunk.offset.to_s(16)})"
       when ScriptTools::Subroutine::Choice
