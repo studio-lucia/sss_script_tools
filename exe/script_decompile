@@ -1,0 +1,75 @@
+#!/usr/bin/env ruby
+
+require "script_tools/header_parser"
+require "script_tools/subroutine"
+
+if ARGV.first.nil?
+  $stderr.puts "No script file specified!"
+  exit 1
+end
+
+if !File.exist? ARGV.first
+  $stderr.puts "No such file: #{ARGV.first}"
+  exit 1
+end
+
+begin
+  stream = File.open(ARGV.first)
+rescue Errno::EACCES
+  $stderr.puts "Cannot read file: #{ARGV.first}"
+  exit 1
+end
+parser = ScriptTools::HeaderParser.new stream: stream
+pointers = parser.parse
+pointer = pointers.find {|p| !p.null?}
+
+commands = []
+
+# Seek to the start of the subroutine
+stream.seek pointer.offset
+
+loop do
+  bytes = stream.read(2)
+  break if bytes.nil? # EOF - probably shouldn't reach here?
+
+  subroutine_code = (bytes[0].ord << 8) + bytes[1].ord
+  if ScriptTools::Subroutine.subroutine_map.has_key? subroutine_code
+    subroutine = ScriptTools::Subroutine.subroutine_map[subroutine_code].new
+    subroutine.consume(stream)
+  else
+    # add it to the array but don't consume any bytes
+    subroutine = ScriptTools::Subroutine::Unknown.new(magic_number: subroutine_code)
+  end
+
+  commands << subroutine
+  break if subroutine.is_a? ScriptTools::Subroutine::EndOfScript
+end
+
+commands.each do |command|
+  if command.is_a? ScriptTools::Subroutine::Unknown
+    puts "(execute-subroutine 0x#{command.magic_number})"
+    next
+  end
+
+  # Text with subcommands
+  if command.data.is_a? Array
+    puts "(run-commands"
+    command.data.each do |chunk|
+      case chunk
+      when ScriptTools::Subroutine::Chunk
+        puts "  (print-text \"#{chunk.data.join}\")"
+      when ScriptTools::Subroutine::Jump
+        puts "  (jump 0x#{chunk.offset.to_s(16)})"
+      when ScriptTools::Subroutine::Choice
+        puts "  (choice)"
+      when ScriptTools::Subroutine::EndOfScript
+        break
+      else
+        puts "  (execute-subroutine 0x#{chunk.class.magic_number})"
+      end
+    end
+    puts ")"
+  else
+    puts "(execute-subroutine 0x#{command.class.magic_number.to_s(16)} #{command.data.inspect})"
+  end
+end
