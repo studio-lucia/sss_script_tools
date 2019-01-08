@@ -47,7 +47,7 @@ end
 
 commands.each do |command|
   if command.is_a? ScriptTools::Subroutine::Unknown
-    puts "(execute-subroutine 0x#{command.magic_number})"
+    puts "(execute-subroutine 0x#{command.magic_number.to_s(16).upcase})"
     next
   end
 
@@ -66,8 +66,14 @@ commands.each do |command|
         puts "  (choice)"
       when ScriptTools::Subroutine::EndOfScript
         break
+      when ScriptTools::ControlCode::Portrait
+        puts "  (show-portrait 0x#{chunk.value.to_s(16).upcase})"
+      when ScriptTools::ControlCode::Space
+        puts "  (print-space 0x#{chunk.value.to_s(16).upcase})"
+      when ScriptTools::ControlCode::BaseControlCode
+        puts "  (control-code 0x#{chunk.class.magic_number.to_s(16).upcase} 0x#{chunk.value.to_s(16).upcase})"
       else
-        puts "  (execute-subroutine 0x#{chunk.class.magic_number})"
+        puts "  (execute-subroutine 0x#{chunk.class.magic_number.to_s(16).upcase})"
       end
     end
     puts ")"
