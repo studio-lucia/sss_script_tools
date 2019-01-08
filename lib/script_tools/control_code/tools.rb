@@ -14,6 +14,10 @@ module ScriptTools
       def initialize value
         @value = value
       end
+
+      def to_s
+        [self.class.magic_number.chr, value.chr].join
+      end
     end
 
     class << self
