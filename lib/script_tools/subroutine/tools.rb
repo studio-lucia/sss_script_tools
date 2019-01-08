@@ -42,7 +42,9 @@ module ScriptTools
     end
 
     # Represents an undocumented subroutine
-    class Unknown
+    class Unknown < BaseSubroutine
+      attr_reader :magic_number
+
       def initialize(magic_number:)
         @magic_number = magic_number
         @data = []
